@@ -3,6 +3,8 @@ package com.github.qompute.boxify;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraX;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageAnalysisConfig;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
@@ -12,10 +14,10 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.os.Bundle;
-import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.concurrent.Executor;
@@ -25,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private int REQUEST_CODE_PERMISSIONS = 10;
     private String[] REQUIRED_PERMISSIONS = {Manifest.permission.CAMERA};
     private TextureView viewFinder;
+    private TextView label;
     private Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -33,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         viewFinder = findViewById(R.id.view_finder);
+        label = findViewById(R.id.text_view);
+
         if (allPermissionsGranted()) {
             viewFinder.post(this::startCamera);
         } else {
@@ -60,7 +65,14 @@ public class MainActivity extends AppCompatActivity {
             viewFinder.setSurfaceTexture(output.getSurfaceTexture());
             updateTransform();
         });
-        CameraX.bindToLifecycle(this, preview);
+
+        ImageAnalysisConfig analyzerConfig = new ImageAnalysisConfig.Builder()
+                .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
+                .build();
+        ImageAnalysis analyzerUseCase = new ImageAnalysis(analyzerConfig);
+        analyzerUseCase.setAnalyzer(executor, new ObjectIdentifier(label));
+
+        CameraX.bindToLifecycle(this, preview, analyzerUseCase);
     }
 
     private void updateTransform() {
@@ -69,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         float centerX = viewFinder.getWidth() / 2f;
         float centerY = viewFinder.getHeight() / 2f;
 
-        float rotationDegrees = 0f;
+        float rotationDegrees;
         switch (viewFinder.getDisplay().getRotation()) {
             case Surface.ROTATION_0: rotationDegrees = 0f; break;
             case Surface.ROTATION_90: rotationDegrees = 90f; break;
