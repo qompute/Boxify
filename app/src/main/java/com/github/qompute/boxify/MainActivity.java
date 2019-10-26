@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.core.CameraX;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageAnalysisConfig;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureConfig;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.app.ActivityCompat;
@@ -66,13 +68,18 @@ public class MainActivity extends AppCompatActivity {
             updateTransform();
         });
 
+        ImageCaptureConfig imageCaptureConfig = new ImageCaptureConfig.Builder()
+                .setCaptureMode(ImageCapture.CaptureMode.MIN_LATENCY)
+                .build();
+        ImageCapture imageCapture = new ImageCapture(imageCaptureConfig);
+
         ImageAnalysisConfig analyzerConfig = new ImageAnalysisConfig.Builder()
                 .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
                 .build();
         ImageAnalysis analyzerUseCase = new ImageAnalysis(analyzerConfig);
-        analyzerUseCase.setAnalyzer(executor, new ObjectIdentifier(label));
+        analyzerUseCase.setAnalyzer(executor, new ObjectIdentifier(label, imageCapture, executor));
 
-        CameraX.bindToLifecycle(this, preview, analyzerUseCase);
+        CameraX.bindToLifecycle(this, preview, imageCapture, analyzerUseCase);
     }
 
     private void updateTransform() {
