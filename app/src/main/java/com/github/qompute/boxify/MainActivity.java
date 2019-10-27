@@ -19,17 +19,21 @@ import android.os.Bundle;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import static androidx.camera.core.CameraX.getContext;
+
 public class MainActivity extends AppCompatActivity {
     private int REQUEST_CODE_PERMISSIONS = 10;
     private String[] REQUIRED_PERMISSIONS = {Manifest.permission.CAMERA};
     private TextureView viewFinder;
     private TextView label;
+    private RectangleOverlay rectOverlay;
     private Executor executor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -39,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
 
         viewFinder = findViewById(R.id.view_finder);
         label = findViewById(R.id.text_view);
+        rectOverlay = findViewById(R.id.rect_overlay);
 
         if (allPermissionsGranted()) {
             viewFinder.post(this::startCamera);
@@ -77,7 +82,8 @@ public class MainActivity extends AppCompatActivity {
                 .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
                 .build();
         ImageAnalysis analyzerUseCase = new ImageAnalysis(analyzerConfig);
-        analyzerUseCase.setAnalyzer(executor, new ObjectIdentifier(label, imageCapture, executor));
+        analyzerUseCase.setAnalyzer(executor, new ObjectIdentifier(label, rectOverlay,
+                imageCapture, executor));
 
         CameraX.bindToLifecycle(this, preview, imageCapture, analyzerUseCase);
     }
