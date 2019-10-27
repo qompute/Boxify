@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "839076195809",
+    "firebase_url": "https://boxify-c26d5.firebaseio.com",
+    "project_id": "boxify-c26d5",
+    "storage_bucket": "boxify-c26d5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839076195809:android:bdf4f55790480b521176a0",
+        "android_client_info": {
+          "package_name": "com.github.qompute.boxify"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839076195809-55n8qg6630ak6t0or7ifje8q5vhs3n8l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSHj6avG33PuVDb4-HZa-W2jB_C-Qrnpk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839076195809-55n8qg6630ak6t0or7ifje8q5vhs3n8l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
