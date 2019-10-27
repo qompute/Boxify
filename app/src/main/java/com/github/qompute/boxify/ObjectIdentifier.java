@@ -1,14 +1,12 @@
 package com.github.qompute.boxify;
 
+import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.media.Image;
 import android.os.Environment;
-import android.util.Log;
 import android.util.Size;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageProxy;
@@ -22,18 +20,21 @@ import com.google.firebase.ml.vision.objects.FirebaseVisionObject;
 import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetector;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.util.List;
 import java.util.concurrent.Executor;
 
 public class ObjectIdentifier implements ImageAnalysis.Analyzer {
     private FirebaseVisionImageLabeler labeler;
     private FirebaseVisionObjectDetector detector;
-    private String prevId;
+    private int prevId;
     private Size imageSize;
+    private Bitmap croppedImage;
     private TextView textView;
     private ImageCapture imageCapture;
     private RectangleOverlay rectOverlay;
-    private long lastAnalyzedTimeStamp = 0L;
+    private long lastObjectTimeStamp = 0L;
+    private boolean imageTaken = false;
     private Executor executor;
 
     public ObjectIdentifier(TextView labelView, RectangleOverlay overlay,
@@ -78,18 +79,16 @@ public class ObjectIdentifier implements ImageAnalysis.Analyzer {
                 best = label;
             }
         }
-        if (best != null && best.getConfidence() > 0.7 && !best.getEntityId().equals(prevId)) {
+        if (best != null && best.getConfidence() > 0.7) {
             textView.setText(best.getText());
-            prevId = best.getEntityId();
             File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
                     System.currentTimeMillis() + "_" + best.getText() + ".jpg");
-            imageCapture.takePicture(file, executor, new ImageCapture.OnImageSavedListener() {
-                @Override
-                public void onImageSaved(@NonNull File file) {}
-
-                @Override
-                public void onError(@NonNull ImageCapture.ImageCaptureError imageCaptureError, @NonNull String message, @Nullable Throwable cause) {}
-            });
+            try {
+                FileOutputStream fos = new FileOutputStream(file);
+                croppedImage.compress(Bitmap.CompressFormat.JPEG, 75, fos);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else if (best == null) {
             textView.setText("");
         }
@@ -101,11 +100,41 @@ public class ObjectIdentifier implements ImageAnalysis.Analyzer {
             double scaleY = rectOverlay.getHeight() / imageSize.getHeight();
 
             Rect imageRect = objects.get(0).getBoundingBox();
+
             Rect viewRect = new Rect((int) (imageRect.left * scaleX),
                     (int) (imageRect.top * scaleY),
                     (int) (imageRect.right * scaleX),
                     (int) (imageRect.bottom * scaleY));
             rectOverlay.setRectangle(viewRect);
+
+            int id = objects.get(0).getTrackingId();
+            if (id != prevId) {
+                prevId = id;
+                lastObjectTimeStamp = System.currentTimeMillis();
+                imageTaken = false;
+            } else if (!imageTaken && System.currentTimeMillis() - lastObjectTimeStamp > 1000) {
+                imageTaken = true;
+                imageCapture.takePicture(executor, new ImageCapture.OnImageCapturedListener() {
+                    @Override
+                    public void onCaptureSuccess(ImageProxy image, int degrees) {
+                        Bitmap bitmap = FirebaseVisionImage.fromMediaImage(image.getImage(),
+                                degreesToFirebaseRotation(degrees)).getBitmap();
+                        double stretchX = (double) bitmap.getWidth() / imageSize.getWidth();
+                        double stretchY = (double) bitmap.getHeight() / imageSize.getHeight();
+                        croppedImage = Bitmap.createBitmap(bitmap,
+                                (int) (imageRect.left * stretchX),
+                                (int) (imageRect.top * stretchY),
+                                (int) (imageRect.width() * stretchX),
+                                (int) (imageRect.height() * stretchY));
+
+                        FirebaseVisionImage fvImage = FirebaseVisionImage.fromBitmap(croppedImage);
+                        labeler.processImage(fvImage)
+                                .addOnSuccessListener(ObjectIdentifier.this::processLabels)
+                                .addOnFailureListener(Exception::printStackTrace);
+                        image.close();
+                    }
+                });
+            }
         } else {
             rectOverlay.setRectangle(null);
         }
@@ -122,8 +151,8 @@ public class ObjectIdentifier implements ImageAnalysis.Analyzer {
         }
         Image mediaImage = imageProxy.getImage();
         int rotation = degreesToFirebaseRotation(degrees);
-        imageSize = findImageSize(mediaImage, degrees);
         FirebaseVisionImage image = FirebaseVisionImage.fromMediaImage(mediaImage, rotation);
+        imageSize = new Size(image.getBitmap().getWidth(), image.getBitmap().getHeight());
 
         detector.processImage(image)
                 .addOnSuccessListener(this::processObjects)
