@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">Boxify</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_edit_locale">Edit Locale</string>
+    <string name="action_delete_locale">Delete Locale</string>
+    <string name="action_multi_pic">Scan Multiple</string>
+    <string name="add_locale_title">"Add Locale"</string>
+    <string name="add_item_title">"Add Item"</string>
+    <string name="action_delete_item">"Delete Item"</string>
+    <string name="locale_name_title">"Locale Name"</string>
+    <string name="item_name_title">"Item Name"</string>
+    <string name="camera_title">Camera</string>
 </resources>

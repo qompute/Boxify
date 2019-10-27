@@ -1,4 +1,4 @@
-package com.github.qompute.boxify;
+package com.github.qompute.boxify.classifyutils;
 
 import android.content.Context;
 import android.graphics.Canvas;

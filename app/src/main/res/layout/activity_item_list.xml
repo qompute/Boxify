@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.github.qompute.boxify.activity.MainActivity">
+    tools:context="com.github.qompute.boxify.activity.ItemListActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -22,7 +22,7 @@
 
     <include
         android:id="@+id/body"
-        layout="@layout/content_main" />
+        layout="@layout/content_item_list" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab"

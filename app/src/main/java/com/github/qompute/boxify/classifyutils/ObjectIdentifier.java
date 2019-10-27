@@ -1,4 +1,4 @@
-package com.github.qompute.boxify;
+package com.github.qompute.boxify.classifyutils;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
@@ -11,6 +11,7 @@ import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageCapture;
 import androidx.camera.core.ImageProxy;
 
+import com.github.qompute.boxify.data.BitmapLabelPair;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
 import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
@@ -21,6 +22,8 @@ import com.google.firebase.ml.vision.objects.FirebaseVisionObjectDetector;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
@@ -36,6 +39,9 @@ public class ObjectIdentifier implements ImageAnalysis.Analyzer {
     private long lastObjectTimeStamp = 0L;
     private boolean imageTaken = false;
     private Executor executor;
+    private int maxAmount;
+
+    public static List<BitmapLabelPair> dataList = new ArrayList<>();
 
     public ObjectIdentifier(TextView labelView, RectangleOverlay overlay,
                             ImageCapture imageCapture, Executor executor) {
@@ -45,6 +51,12 @@ public class ObjectIdentifier implements ImageAnalysis.Analyzer {
         rectOverlay = overlay;
         this.imageCapture = imageCapture;
         this.executor = executor;
+    }
+
+    public ObjectIdentifier(TextView labelView, RectangleOverlay overlay,
+                            ImageCapture imageCapture, Executor executor, int maxAmount) {
+        this(labelView, overlay, imageCapture, executor);
+        this.maxAmount = maxAmount;
     }
 
     private int degreesToFirebaseRotation(int degrees) {
