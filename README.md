@@ -1,5 +1,8 @@
 # Boxify
 
+## Project Description
+This project was created as a part of [Cal Hacks 6.0](https://cal-hacks-6.devpost.com/), which took place over 36 hours on October 25-27, 2019. You can find more complete information about this project, including screenshots, on this project's [Devpost page](https://devpost.com/software/boxify-8gmbwq).
+
 ## What it does
 Boxify is an Android app that allows you to keep track of important items and where they're stored. Using image recognition technology, Boxify simplifies the process of organizing photos of objects, so you'll know exactly which drawer or shelf you put that one item that you need.
 
